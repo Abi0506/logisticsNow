@@ -189,6 +189,7 @@ def main() -> None:
                 use_claude=args.use_claude,
                 session_store=session_store,
                 reply_timeout=reply_timeout,
+                sim_round_delay=0,  # no pacing delay in CLI mode
             )
         else:
             # Real channel mode

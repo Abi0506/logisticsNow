@@ -1,10 +1,10 @@
 """
-Orchestrator – manages multiple concurrent negotiation sessions using asyncio.
+Orchestrator -- manages multiple concurrent negotiation sessions using asyncio.
 
 Supports three modes via the channel abstraction:
-  - Simulator (default) – instant local negotiations
-  - WhatsApp (Twilio) – real-time messaging with webhook-based replies
-  - Gmail (SMTP/IMAP) – email-based negotiations with polling
+  - Simulator (default) -- instant local negotiations
+  - WhatsApp (Twilio) -- real-time messaging with webhook-based replies
+  - Gmail (SMTP/IMAP) -- email-based negotiations with polling
 
 Parallel negotiation flow:
   1. For each LSP, compute strategy (target price + persona).
@@ -13,7 +13,13 @@ Parallel negotiation flow:
   4. Wait for the LSP response via the channel's async queue.
   5. Extract price and sentiment from the reply.
   6. Repeat until convergence or max rounds.
-  7. Apply ClosureGuard before finalizing any deal.
+  7. Apply ClosureGuard before finalising any deal.
+
+Live dashboard support:
+  - ``on_round_callback(session, event_type)`` fires after every round and
+    key lifecycle events so the Streamlit UI can update in real time.
+  - ``sim_round_delay`` adds deliberate pacing for the simulator channel to
+    make the demo feel lively (default 1.2 s).
 """
 
 from __future__ import annotations
@@ -23,7 +29,7 @@ import logging
 import os
 import time
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Callable, Coroutine
 
 from src.channels.base import MessageChannel
 from src.lsp_simulator import LSPSimulator
@@ -43,6 +49,20 @@ if _USE_CLAUDE:
 
 MAX_ROUNDS = 8
 RELIABILITY_PREMIUM_FACTOR = 0.05  # 5% premium per 10% above 85% OTD
+
+
+# ---------------------------------------------------------------------------
+# Callback event types emitted during negotiation
+# ---------------------------------------------------------------------------
+EVENT_SESSION_START = "session_start"      # session initialised
+EVENT_OFFER_SENT = "offer_sent"            # our counter-offer sent
+EVENT_REPLY_RECEIVED = "reply_received"    # LSP replied
+EVENT_ROUND_COMPLETE = "round_complete"    # round fully processed
+EVENT_SESSION_END = "session_end"          # session concluded
+
+
+# Type alias for the optional callback
+RoundCallback = Callable[["NegotiationSession", str], Coroutine[Any, Any, None]]
 
 
 @dataclass
@@ -67,9 +87,12 @@ class NegotiationSession:
     savings: float = 0.0
     sentiment_log: list[dict[str, Any]] = field(default_factory=list)
     channel_type: str = "simulator"
+    # Live state for dashboard rendering
+    last_our_message: str = ""
+    last_lsp_message: str = ""
 
     def to_dict(self) -> dict[str, Any]:
-        """Serialize session state for persistence."""
+        """Serialise session state for persistence."""
         return {
             "session_id": f"{self.lane_id}_{self.lsp_id}",
             "lsp_id": self.lsp_id,
@@ -135,9 +158,9 @@ class ClosureGuard:
 class Orchestrator:
     """Manages parallel negotiation sessions across multiple LSPs.
 
-    Supports two initialization modes:
-      1. Legacy (simulator): pass ``simulators`` list — channels are auto-created.
-      2. Channel-based: pass ``channels`` dict — for WhatsApp/Gmail/mixed.
+    Supports two initialisation modes:
+      1. Legacy (simulator): pass ``simulators`` list -- channels are auto-created.
+      2. Channel-based: pass ``channels`` dict -- for WhatsApp/Gmail/mixed.
     """
 
     def __init__(
@@ -150,9 +173,10 @@ class Orchestrator:
         budget: float = 0.0,
         reliability_weight: float = 1.0,
         use_claude: bool = False,
-        on_round_callback: Any = None,
+        on_round_callback: RoundCallback | None = None,
         session_store: Any = None,
         reply_timeout: float = 300.0,
+        sim_round_delay: float = 1.2,
     ) -> None:
         self.brain = strategy_brain
         self.lane_id = lane_id
@@ -165,6 +189,7 @@ class Orchestrator:
         self.on_round_callback = on_round_callback
         self.session_store = session_store
         self.reply_timeout = reply_timeout
+        self.sim_round_delay = sim_round_delay
         self._results: list[dict[str, Any]] = []
 
         # Legacy simulator mode: auto-wrap in SimulatorChannel
@@ -187,6 +212,22 @@ class Orchestrator:
                 })
         elif channels is not None:
             self._channels = channels
+
+    # ------------------------------------------------------------------
+    # Helper: fire callback safely
+    # ------------------------------------------------------------------
+
+    async def _emit(self, session: NegotiationSession, event: str) -> None:
+        """Fire the on_round_callback if set, swallowing exceptions."""
+        if self.on_round_callback:
+            try:
+                await self.on_round_callback(session, event)
+            except Exception as exc:  # noqa: BLE001
+                logger.debug(f"Callback error ({event}): {exc}")
+
+    # ------------------------------------------------------------------
+    # Session initialisation
+    # ------------------------------------------------------------------
 
     def _init_sessions(self) -> None:
         """Create a NegotiationSession for each LSP."""
@@ -221,6 +262,10 @@ class Orchestrator:
             )
             self.sessions[lsp_id] = session
 
+    # ------------------------------------------------------------------
+    # Core negotiation loop for a single LSP
+    # ------------------------------------------------------------------
+
     async def _negotiate_single(self, lsp_id: str) -> NegotiationSession:
         """Run the negotiation loop for a single LSP."""
         session = self.sessions[lsp_id]
@@ -232,6 +277,9 @@ class Orchestrator:
         session.current_offer = round(
             session.zopa_low * 0.75 + session.target_price * 0.25, 2
         )
+
+        # Notify dashboard that this session has started
+        await self._emit(session, EVENT_SESSION_START)
 
         for round_num in range(1, MAX_ROUNDS + 1):
             session.round_num = round_num
@@ -257,6 +305,8 @@ class Orchestrator:
                     persona=session.persona,
                 )
 
+            session.last_our_message = msg
+
             # Persist state before sending (for real channels, we may wait hours)
             session.status = "waiting_for_reply"
             if self.session_store:
@@ -268,6 +318,9 @@ class Orchestrator:
                     body=msg,
                 )
 
+            # Notify: our offer is being sent
+            await self._emit(session, EVENT_OFFER_SENT)
+
             # Send offer via channel
             lsp_prev_price = session.lsp_current_price
             await channel.send(
@@ -275,6 +328,10 @@ class Orchestrator:
                 message=msg,
                 metadata={"offer_price": session.current_offer, "round": round_num},
             )
+
+            # Pacing delay for simulator mode (makes the demo visually lively)
+            if session.channel_type == "simulator" and self.sim_round_delay > 0:
+                await asyncio.sleep(self.sim_round_delay)
 
             # Wait for LSP response
             try:
@@ -285,9 +342,14 @@ class Orchestrator:
             except asyncio.TimeoutError:
                 session.status = "timeout"
                 logger.warning(f"{lsp_id}: timed out waiting for reply (round {round_num})")
+                await self._emit(session, EVENT_SESSION_END)
                 break
 
             session.status = "active"
+            session.last_lsp_message = reply.text
+
+            # Notify: reply received
+            await self._emit(session, EVENT_REPLY_RECEIVED)
 
             # Log inbound message
             if self.session_store:
@@ -339,9 +401,8 @@ class Orchestrator:
                     f"{session.lane_id}_{session.lsp_id}", round_record
                 )
 
-            # Live callback for dashboard
-            if self.on_round_callback:
-                await self.on_round_callback(session)
+            # Fire round-complete callback so dashboard can refresh
+            await self._emit(session, EVENT_ROUND_COMPLETE)
 
             # Check acceptance
             if accepted:
@@ -366,6 +427,7 @@ class Orchestrator:
                         session.final_price,
                         session.savings,
                     )
+                await self._emit(session, EVENT_SESSION_END)
                 break
 
             # Adjust our next offer
@@ -381,18 +443,19 @@ class Orchestrator:
             )
             session.current_offer = min(session.current_offer, max_price)
 
-            # Small delay for simulator; real channels already waited on receive()
-            if session.channel_type == "simulator":
-                await asyncio.sleep(0.05)
-
         if session.status in ("active", "waiting_for_reply"):
             session.status = "timeout"
             if self.session_store:
                 self.session_store.update_session_status(
                     f"{session.lane_id}_{session.lsp_id}", "timeout"
                 )
+            await self._emit(session, EVENT_SESSION_END)
 
         return session
+
+    # ------------------------------------------------------------------
+    # Top-level runners
+    # ------------------------------------------------------------------
 
     async def run(self) -> list[NegotiationSession]:
         """Run all negotiations in parallel and return completed sessions."""
@@ -477,12 +540,13 @@ if __name__ == "__main__":
         simulators=sims,
         lane_id=lane,
         budget=BUDGET_PER_LANE[lane],
+        sim_round_delay=0,  # no delay for CLI
     )
     sessions = orch.run_sync()
     summary = orch.get_results_summary()
 
     print(f"\n{'='*60}")
-    print(f"NEGOTIATION SUMMARY – {lane}")
+    print(f"NEGOTIATION SUMMARY -- {lane}")
     print(f"{'='*60}")
     print(f"Accepted: {summary['accepted_deals']}/{summary['total_lsps']}")
     print(f"Total Savings: {summary['total_savings']:.2f}")
