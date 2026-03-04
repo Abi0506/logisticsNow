@@ -1,0 +1,6 @@
+anthropic>=0.39.0
+streamlit>=1.40.0
+pandas>=2.1.0
+scikit-learn>=1.4.0
+plotly>=5.18.0
+numpy>=1.26.0

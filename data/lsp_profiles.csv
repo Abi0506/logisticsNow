@@ -1,0 +1,11 @@
+lsp_id,name,avg_flexibility,typical_response_hours,hist_on_time
+LSP_01,SwiftHaul Logistics,0.82,2.0,0.95
+LSP_02,PrimeFreight Co.,0.45,6.0,0.88
+LSP_03,EcoTransit Partners,0.73,3.5,0.92
+LSP_04,BlueArrow Shipping,0.55,4.0,0.85
+LSP_05,NexGen Carriers,0.9,1.5,0.97
+LSP_06,TruckStar Express,0.3,8.0,0.78
+LSP_07,Atlas Freight Lines,0.65,5.0,0.9
+LSP_08,VeloCity Movers,0.78,2.5,0.93
+LSP_09,IronRoute Transport,0.4,7.0,0.8
+LSP_10,GreenMile Logistics,0.6,4.5,0.87

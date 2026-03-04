@@ -1,0 +1,78 @@
+{
+  "contacts": [
+    {
+      "lsp_id": "LSP_01",
+      "name": "SwiftHaul Logistics",
+      "channels": {
+        "whatsapp": "+919876543210",
+        "gmail": "rajesh@swifthaul.com"
+      },
+      "preferred_channel": "whatsapp",
+      "lane_ids": ["Lane_A", "Lane_B"],
+      "initial_quote": 1150.00,
+      "on_time_pct": 95.0
+    },
+    {
+      "lsp_id": "LSP_02",
+      "name": "PrimeFreight Co.",
+      "channels": {
+        "gmail": "ops@primefreight.in"
+      },
+      "preferred_channel": "gmail",
+      "lane_ids": ["Lane_A", "Lane_C"],
+      "initial_quote": 1300.00,
+      "on_time_pct": 88.0
+    },
+    {
+      "lsp_id": "LSP_03",
+      "name": "EcoTransit Partners",
+      "channels": {
+        "whatsapp": "+919876543211",
+        "gmail": "quotes@ecotransit.in"
+      },
+      "preferred_channel": "whatsapp",
+      "lane_ids": ["Lane_A", "Lane_B", "Lane_C"],
+      "initial_quote": 1100.00,
+      "on_time_pct": 92.0
+    },
+    {
+      "lsp_id": "LSP_04",
+      "name": "BlueArrow Shipping",
+      "channels": {
+        "gmail": "shipping@bluearrow.com"
+      },
+      "preferred_channel": "gmail",
+      "lane_ids": ["Lane_A", "Lane_D"],
+      "initial_quote": 1250.00,
+      "on_time_pct": 85.0
+    },
+    {
+      "lsp_id": "LSP_05",
+      "name": "NexGen Carriers",
+      "channels": {
+        "whatsapp": "+919876543212"
+      },
+      "preferred_channel": "whatsapp",
+      "lane_ids": ["Lane_A", "Lane_E"],
+      "initial_quote": 1050.00,
+      "on_time_pct": 97.0
+    }
+  ],
+  "defaults": {
+    "whatsapp": {
+      "account_sid": "$TWILIO_ACCOUNT_SID",
+      "auth_token": "$TWILIO_AUTH_TOKEN",
+      "from_number": "$TWILIO_WHATSAPP_FROM"
+    },
+    "gmail": {
+      "smtp_server": "smtp.gmail.com",
+      "smtp_port": 587,
+      "imap_server": "imap.gmail.com",
+      "imap_port": 993,
+      "email_address": "$GMAIL_ADDRESS",
+      "app_password": "$GMAIL_APP_PASSWORD"
+    },
+    "reply_timeout_seconds": 86400,
+    "imap_poll_interval_seconds": 30
+  }
+}

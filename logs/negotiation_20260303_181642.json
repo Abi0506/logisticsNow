@@ -1,0 +1,163 @@
+{
+  "timestamp": "20260303_181642",
+  "config": {
+    "lanes": [
+      "Lane_A"
+    ],
+    "reliability_weight": 1.0,
+    "max_lsps": 10,
+    "use_claude": false
+  },
+  "overall": {
+    "grand_savings": 2188.01,
+    "accepted": 10,
+    "total": 10,
+    "elapsed_seconds": 0.04
+  },
+  "lane_summaries": [
+    {
+      "total_lsps": 10,
+      "accepted_deals": 10,
+      "rejected_deals": 0,
+      "timeout_deals": 0,
+      "total_savings": 2188.01,
+      "avg_savings_pct": 19.4,
+      "best_deal": {
+        "lsp_id": "LSP_05",
+        "lsp_name": "NexGen Carriers",
+        "lane_id": "Lane_A",
+        "persona": "Aggressive Cutter",
+        "initial_quote": 1027.19,
+        "final_price": 793.4,
+        "savings": 233.79,
+        "status": "accepted",
+        "rounds": 1,
+        "on_time_pct": 97.0
+      },
+      "details": [
+        {
+          "lsp_id": "LSP_01",
+          "lsp_name": "SwiftHaul Logistics",
+          "lane_id": "Lane_A",
+          "persona": "Aggressive Cutter",
+          "initial_quote": 1076.94,
+          "final_price": 843.22,
+          "savings": 233.72,
+          "status": "accepted",
+          "rounds": 1,
+          "on_time_pct": 95.0
+        },
+        {
+          "lsp_id": "LSP_02",
+          "lsp_name": "PrimeFreight Co.",
+          "lane_id": "Lane_A",
+          "persona": "Aggressive Cutter",
+          "initial_quote": 1170.0,
+          "final_price": 969.33,
+          "savings": 200.67,
+          "status": "accepted",
+          "rounds": 1,
+          "on_time_pct": 88.0
+        },
+        {
+          "lsp_id": "LSP_03",
+          "lsp_name": "EcoTransit Partners",
+          "lane_id": "Lane_A",
+          "persona": "Aggressive Cutter",
+          "initial_quote": 1118.15,
+          "final_price": 885.43,
+          "savings": 232.72,
+          "status": "accepted",
+          "rounds": 1,
+          "on_time_pct": 92.0
+        },
+        {
+          "lsp_id": "LSP_04",
+          "lsp_name": "BlueArrow Shipping",
+          "lane_id": "Lane_A",
+          "persona": "Aggressive Cutter",
+          "initial_quote": 1196.72,
+          "final_price": 969.91,
+          "savings": 226.81,
+          "status": "accepted",
+          "rounds": 1,
+          "on_time_pct": 85.0
+        },
+        {
+          "lsp_id": "LSP_05",
+          "lsp_name": "NexGen Carriers",
+          "lane_id": "Lane_A",
+          "persona": "Aggressive Cutter",
+          "initial_quote": 1027.19,
+          "final_price": 793.4,
+          "savings": 233.79,
+          "status": "accepted",
+          "rounds": 1,
+          "on_time_pct": 97.0
+        },
+        {
+          "lsp_id": "LSP_06",
+          "lsp_name": "TruckStar Express",
+          "lane_id": "Lane_A",
+          "persona": "Aggressive Cutter",
+          "initial_quote": 1216.86,
+          "final_price": 1030.7,
+          "savings": 186.16,
+          "status": "accepted",
+          "rounds": 1,
+          "on_time_pct": 78.0
+        },
+        {
+          "lsp_id": "LSP_07",
+          "lsp_name": "Atlas Freight Lines",
+          "lane_id": "Lane_A",
+          "persona": "Aggressive Cutter",
+          "initial_quote": 1075.15,
+          "final_price": 866.95,
+          "savings": 208.2,
+          "status": "accepted",
+          "rounds": 1,
+          "on_time_pct": 90.0
+        },
+        {
+          "lsp_id": "LSP_08",
+          "lsp_name": "VeloCity Movers",
+          "lane_id": "Lane_A",
+          "persona": "Aggressive Cutter",
+          "initial_quote": 1091.99,
+          "final_price": 856.91,
+          "savings": 235.08,
+          "status": "accepted",
+          "rounds": 1,
+          "on_time_pct": 93.0
+        },
+        {
+          "lsp_id": "LSP_09",
+          "lsp_name": "IronRoute Transport",
+          "lane_id": "Lane_A",
+          "persona": "Aggressive Cutter",
+          "initial_quote": 1182.04,
+          "final_price": 981.67,
+          "savings": 200.37,
+          "status": "accepted",
+          "rounds": 1,
+          "on_time_pct": 80.0
+        },
+        {
+          "lsp_id": "LSP_10",
+          "lsp_name": "GreenMile Logistics",
+          "lane_id": "Lane_A",
+          "persona": "Aggressive Cutter",
+          "initial_quote": 1170.94,
+          "final_price": 940.45,
+          "savings": 230.49,
+          "status": "accepted",
+          "rounds": 1,
+          "on_time_pct": 87.0
+        }
+      ],
+      "lane_id": "Lane_A",
+      "elapsed_seconds": 0.04
+    }
+  ]
+}
